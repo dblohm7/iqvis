@@ -10,27 +10,25 @@
 
 typedef struct tagIQINFOINPUT
 {
-  USHORT  currentIQOffset;
-  USHORT  prevIQOffset;
-  ULONG   numTids;
-  ULONG   tids[1];
-}
-IQINFOINPUT, *PIQINFOINPUT;
+  SIZE_T  cbSize;
+  ULONG   offsetEnterCritAvoidingDitHitTestHazard;
+  ULONG   offsetUserSessionSwitchLeaveCrit;
+  ULONG   offsetGpresUser;
+  ULONG   offsetGpai;
+};
 
-typedef struct tagTHREADIQ
+typedef struct tagIQINFOATTACHMENT
 {
-  ULONG tid;
-  PVOID currentIQ;
-  PVOID prevIQ;
-}
-THREADIQ, *PTHREADIQ;
+  DWORD   tidFrom;
+  DWORD   tidTo;
+  ULONG   count;
+} IQINFOATTACHMENT;
 
-typedef struct tagIQINFO
+typedef struct tagIQINFOOUTPUT
 {
-  ULONG     count;
-  THREADIQ  threadIQs[1];
-}
-IQINFO, *PIQINFO;
+  ULONG             count;
+  IQINFOATTACHMENT  attachments[1];
+} IQINFO, *PIQINFO;
 
 #endif /* __IQVISCTL_H */
 

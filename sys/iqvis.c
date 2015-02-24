@@ -89,6 +89,24 @@ NTSTATUS OnCreateClose(PDEVICE_OBJECT aDeviceObject, PIRP aIrp)
   return STATUS_SUCCESS;
 }
 
+extern PVOID EnterCritAvoidingDitHitTestHazard(void);
+extern void UserSessionSwitchLeaveCrit(void);
+
+void EnterUserCriticalSection81(void)
+{
+  EnterCritAvoidingDitHitTestHazard();
+}
+
+void LeaveUserCriticalSection(void)
+{
+  UserSessionSwitchLeaveCrit();
+}
+
+void EnterUserCriticalSection7(void)
+{
+  ExEnterPriorityRegionAndAcquireResourceExclusive(gpresUser);
+}
+
 NTSTATUS OnDeviceControl(PDEVICE_OBJECT aDeviceObject, PIRP aIrp)
 {
   /* Local vars */

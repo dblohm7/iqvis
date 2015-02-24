@@ -11,6 +11,13 @@ PsGetThreadWin32Thread(
     __in PETHREAD Thread
     );
 
+__drv_maxIRQL(APC_LEVEL)
+NTKERNELAPI
+PVOID
+ExEnterPriorityRegionAndAcquireResourceExclusive(
+    __in PERESOURCE Resource
+    );
+
 /*
 PsGetThreadSessionId
 PsGetCurrentProcessSessionId
