@@ -2,6 +2,7 @@
 #define __IQVISCTL_H
 
 #include <ntddk.h>
+#include <ntintsafe.h>
 
 #define IOCTL_TYPE (0x8000 + 0x42)
 
@@ -13,9 +14,9 @@ typedef struct tagIQINFOINPUT
   SIZE_T  cbSize;
   ULONG   offsetEnterCritAvoidingDitHitTestHazard;
   ULONG   offsetUserSessionSwitchLeaveCrit;
-  ULONG   offsetGpresUser;
   ULONG   offsetGpai;
-};
+  ULONG   offsetGpresUser;
+} IQINFOINPUT, *PIQINFOINPUT;
 
 typedef struct tagIQINFOATTACHMENT
 {
