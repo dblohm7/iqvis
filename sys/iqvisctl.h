@@ -1,8 +1,13 @@
 #ifndef __IQVISCTL_H
 #define __IQVISCTL_H
 
+#if defined(__IQVISCLIENT_H)
+#include <windows.h>
+#include <winioctl.h>
+#else
 #include <ntddk.h>
 #include <ntintsafe.h>
+#endif
 
 #define IOCTL_TYPE (0x8000 + 0x42)
 

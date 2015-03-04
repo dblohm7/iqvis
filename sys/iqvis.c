@@ -6,7 +6,7 @@
 #include "win32k.h"
 
 #define NT_DEVICE_NAME    L"\\Device\\IQVIS"
-#define WIN32_DEVICE_NAME L"\\DosDevices\\InputQueueVisualizer"
+#define WIN32_DEVICE_NAME L"\\DosDevices\\Global\\IQVIS"
 
 DRIVER_INITIALIZE DriverEntry;
 
@@ -57,7 +57,7 @@ DriverEntry(PDRIVER_OBJECT aDriverObject, PUNICODE_STRING aRegistryPath)
   aDriverObject->DriverUnload = &OnUnload;
 
   RtlInitUnicodeString(&win32DeviceName, WIN32_DEVICE_NAME);
-  ntStatus = IoCreateSymbolicLink(&ntDeviceName, &win32DeviceName);
+  ntStatus = IoCreateSymbolicLink(&win32DeviceName, &ntDeviceName);
   if (!NT_SUCCESS(ntStatus)) {
     IoDeleteDevice(devObject);
   }
@@ -141,12 +141,12 @@ GetModuleBase(PCHAR aModuleName, PVOID* aOutBaseAddress)
 
   status = ZwQuerySystemInformation(SystemModuleInformation, NULL, 0,
                                     &bufferSize);
-  if (!NT_SUCCESS(status)) {
+  if (!NT_SUCCESS(status) && status != STATUS_INFO_LENGTH_MISMATCH) {
     return status;
   }
 
   systemModuleInfo = (PSYSTEM_MODULE_INFORMATION)
-    ExAllocatePoolWithTag( NonPagedPool, bufferSize, 'IVQI');
+    ExAllocatePoolWithTag(NonPagedPool, bufferSize, 'IVQI');
   if (!systemModuleInfo) {
     return STATUS_NO_MEMORY;
   }
@@ -157,6 +157,7 @@ GetModuleBase(PCHAR aModuleName, PVOID* aOutBaseAddress)
     goto end;
   }
 
+  status = STATUS_DLL_NOT_FOUND;
   for (i = 0; i < systemModuleInfo->Count; ++i) {
     if (!_stricmp(systemModuleInfo->Module[i].ImageName +
                   systemModuleInfo->Module[i].PathLength, aModuleName)) {
@@ -186,11 +187,12 @@ ResolveGlobalData(PIQINFOINPUT aInput)
     // Already initialized
     return STATUS_SUCCESS;
   }
+  gOsv.dwOSVersionInfoSize = sizeof(gOsv);
   status = RtlGetVersion(&gOsv);
   if (!NT_SUCCESS(status)) {
     return status;
   }
-  status = GetModuleBase("win32k", &win32kBase);
+  status = GetModuleBase("win32k.sys", &win32kBase);
   if (!NT_SUCCESS(status)) {
     return status;
   }
@@ -218,7 +220,7 @@ ThreadInfoToTid(PTHREADINFO aThreadInfo)
 }
 
 NTSTATUS
-GetInputQueueInfo(PIQINFOINPUT aInput, PIQINFO aOutput, ULONG aOutputLen)
+GetInputQueueInfo(PIQINFOINPUT aInput, PIQINFO aOutput, ULONG* aOutputLen)
 {
   NTSTATUS status;
   ULONG outputIndex = 0;
@@ -227,7 +229,8 @@ GetInputQueueInfo(PIQINFOINPUT aInput, PIQINFO aOutput, ULONG aOutputLen)
   if (aInput->cbSize != sizeof(IQINFOINPUT) ||
       !aInput->offsetEnterCritAvoidingDitHitTestHazard ||
       !aInput->offsetUserSessionSwitchLeaveCrit ||
-      !aInput->offsetGpai) {
+      !aInput->offsetGpai ||
+      !aOutputLen) {
     return STATUS_INVALID_PARAMETER;
   }
   if (!NT_SUCCESS(status = ResolveGlobalData(aInput))) {
@@ -241,19 +244,23 @@ GetInputQueueInfo(PIQINFOINPUT aInput, PIQINFO aOutput, ULONG aOutputLen)
     ++outputIndex;
     node = node->next;
   }
-  // outputIndex should have a lower bound of 1 when measuring to account for
+  // requiredCount should have a lower bound of 1 when measuring to account for
   // the IQINFOATTACHMENT that is already included in the IQINFO structure.
-  if (outputIndex == 0) {
-    outputIndex = 1;
+  ULONG requiredCount = outputIndex;
+  if (requiredCount == 0) {
+    requiredCount = 1;
   }
   requiredOutputLen = sizeof(IQINFO) +
-                      sizeof(IQINFOATTACHMENT) * (outputIndex - 1);
+                      sizeof(IQINFOATTACHMENT) * (requiredCount - 1);
   __try {
-    if (aOutputLen < requiredOutputLen) {
-      if (aOutputLen >= sizeof(ULONG)) {
+    if (*aOutputLen < requiredOutputLen) {
+      if (*aOutputLen >= sizeof(ULONG)) {
         aOutput->count = outputIndex;
+        *aOutputLen = sizeof(aOutput->count);
+        status = STATUS_MORE_ENTRIES;
+      } else {
+        status = STATUS_BUFFER_TOO_SMALL;
       }
-      status = STATUS_INVALID_BUFFER_SIZE;
       goto end;
     }
     node = *gGpai;
@@ -311,7 +318,7 @@ NTSTATUS OnDeviceControl(PDEVICE_OBJECT aDeviceObject, PIRP aIrp)
         ntStatus = STATUS_INVALID_PARAMETER;
         goto END;
       }
-      ntStatus = GetInputQueueInfo(inBuf, outBuf, outBufLen);
+      ntStatus = GetInputQueueInfo(inBuf, outBuf, &outBufLen);
       break;
     default:
       ntStatus = STATUS_INVALID_DEVICE_REQUEST;
@@ -321,6 +328,11 @@ NTSTATUS OnDeviceControl(PDEVICE_OBJECT aDeviceObject, PIRP aIrp)
 END:
 
   aIrp->IoStatus.Status = ntStatus;
+  if (NT_SUCCESS(ntStatus)) {
+    aIrp->IoStatus.Information = outBufLen;
+  } else {
+    aIrp->IoStatus.Information = 0;
+  }
   IoCompleteRequest(aIrp, IO_NO_INCREMENT);
 
   return ntStatus;

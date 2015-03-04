@@ -16,7 +16,7 @@ public:
   SymbolLoader();
   ~SymbolLoader();
 
-  bool Init();
+  bool Init(const wchar_t* aAppDataName);
   bool LoadModule(const wchar_t* aImageName);
   void* GetSymbolAddress(const wchar_t* aSymbolName);
   DWORD64 GetSymbolRVA(const wchar_t* aSymbolName);

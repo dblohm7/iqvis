@@ -26,9 +26,9 @@ SymbolLoader::~SymbolLoader()
 }
 
 bool
-SymbolLoader::Init()
+SymbolLoader::Init(const wchar_t* aAppDataName)
 {
-  if (!mProc) {
+  if (!mProc || !aAppDataName) {
     return false;
   }
 
@@ -36,7 +36,7 @@ SymbolLoader::Init()
   if (FAILED(SHGetFolderPath(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, path))) {
     return false;
   }
-  if (FAILED(PathAppend(path, L"iqvis"))) {
+  if (FAILED(PathAppend(path, aAppDataName))) {
     return false;
   }
 
@@ -85,6 +85,13 @@ SymbolLoader::GetSymbolAddress(const wchar_t* aSymbolName)
     return nullptr;
   }
   return reinterpret_cast<void*>(symbolInfo.Address);
+}
+
+DWORD64
+SymbolLoader::GetSymbolRVA(const wchar_t* aSymbolName)
+{
+  void* address = GetSymbolAddress(aSymbolName);
+  return reinterpret_cast<DWORD64>(address) - mLoadAddr;
 }
 
 bool
