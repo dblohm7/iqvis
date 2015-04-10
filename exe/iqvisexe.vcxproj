@@ -164,7 +164,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>kernel32.lib;user32.lib;shell32.lib;ntdll.lib;advapi32.lib;shlwapi.lib;ole32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ManifestFile>$(SolutionDir)iqvis.manifest</ManifestFile>
+      <ManifestFile>$(IntDir)iqvis.exe.manifest</ManifestFile>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
@@ -181,9 +181,6 @@
     <ClInclude Include="loki\ScopeGuard.h" />
     <ClInclude Include="ScopedProcess.h" />
     <ClInclude Include="SymbolLoader.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Manifest Include="iqvis.exe.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
