@@ -19,7 +19,7 @@ public:
   bool Init(const wchar_t* aAppDataName);
   bool LoadModule(const wchar_t* aImageName);
   void* GetSymbolAddress(const wchar_t* aSymbolName);
-  DWORD64 GetSymbolRVA(const wchar_t* aSymbolName);
+  DWORD GetSymbolRVA(const wchar_t* aSymbolName);
   bool LoadTypeInfo(const wchar_t* aTypeName);
   bool GetOffset(const wchar_t* aTypeName, const wchar_t* aFieldName, unsigned int& aOffset) const;
 

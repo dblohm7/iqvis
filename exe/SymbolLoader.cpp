@@ -45,8 +45,8 @@ SymbolLoader::Init(const wchar_t* aAppDataName)
     CreateDirectory(path, NULL);
   }
 
-  wchar_t symPath[MAX_PATH + sizeof(kSymbolPath)/sizeof(kSymbolPath[0])];
-  if (swprintf(symPath, kSymbolPath, path) < 0) {
+  wchar_t symPath[MAX_PATH];
+  if (swprintf(symPath, MAX_PATH, kSymbolPath, path) < 0) {
     return false;
   }
 
@@ -87,11 +87,12 @@ SymbolLoader::GetSymbolAddress(const wchar_t* aSymbolName)
   return reinterpret_cast<void*>(symbolInfo.Address);
 }
 
-DWORD64
+DWORD
 SymbolLoader::GetSymbolRVA(const wchar_t* aSymbolName)
 {
   void* address = GetSymbolAddress(aSymbolName);
-  return reinterpret_cast<DWORD64>(address) - mLoadAddr;
+  // We're assuming here that no executable is going to be larger than 4GB
+  return static_cast<DWORD>(reinterpret_cast<DWORD64>(address) - mLoadAddr);
 }
 
 bool
@@ -99,14 +100,14 @@ SymbolLoader::EnumerateSymbols(const wchar_t* aSpec,
                                SymbolLoader::ISymbolEnumerationCallback& aCb) const
 {
   return SymEnumSymbols(mProc, mLoadAddr, aSpec,
-                        &SymbolLoader::EnumerationCallback, &aCb);
+                        &SymbolLoader::EnumerationCallback, &aCb) == TRUE;
 }
 
 bool
 SymbolLoader::EnumerateTypes(SymbolLoader::ISymbolEnumerationCallback& aCb) const
 {
   return SymEnumTypes(mProc, mLoadAddr,
-                      &SymbolLoader::EnumerationCallback, &aCb);
+                      &SymbolLoader::EnumerationCallback, &aCb) == TRUE;
 }
 
 /* static */ BOOL CALLBACK
