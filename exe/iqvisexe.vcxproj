@@ -77,6 +77,8 @@
     <IncludePath>C:\Users\dblohm7\src\iqvis\sys;C:\Users\dblohm7\src\iqvis\exe\loki;C:\Users\dblohm7\src\iqvis\exe;$(IncludePath)</IncludePath>
     <TargetName>iqvis</TargetName>
     <LibraryPath>C:\Program Files %28x86%29\Windows Kits\8.1\Debuggers\lib\x64;$(LibraryPath)</LibraryPath>
+    <IntDir>$(ProjectDir)$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -86,9 +88,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)sys;$(SolutionDir)exe\loki;$(SolutionDir)exe;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\dblohm7\src\iqvis\sys;C:\Users\dblohm7\src\iqvis\exe\loki;C:\Users\dblohm7\src\iqvis\exe;$(IncludePath)</IncludePath>
     <TargetName>iqvis</TargetName>
-    <LibraryPath>C:\Program Files %28x86%29\Windows Kits\8.1\Debuggers\lib\$(Platform);$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\Program Files %28x86%29\Windows Kits\8.1\Debuggers\lib\x64;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
@@ -122,7 +124,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>kernel32.lib;user32.lib;shell32.lib;ntdll.lib;advapi32.lib;shlwapi.lib;ole32.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <ManifestFile>$(SolutionDir)iqvis.manifest</ManifestFile>
+      <ManifestFile>$(IntDir)iqvis.exe.manifest</ManifestFile>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
